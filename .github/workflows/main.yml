@@ -10,8 +10,38 @@ on:
       - main
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Sey up Nodejs
+        uses: actions/setup-node@v4
+        with: 
+          node-version: '18'
+      - name: Install dependencies
+        run: npm install
+      - name: Run eslint
+        run: npm run lint
+  codeql:
+    runs-on: ubuntu-latest
+    needs: [lint] 
+    permissions:
+      security-events: write
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Initialze CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3 
+
   build:
     runs-on: ubuntu-latest
+    needs: [lint,codeql]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -21,6 +51,9 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Run a Hello world actions
+        uses: actions/hello-world-docker-action@v1
+        
       - name: Install dependencies
         run: npm install
 
@@ -29,3 +62,5 @@ jobs:
 
       - name: Run tests
         run: npm test
+ 
+ 
